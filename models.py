@@ -60,8 +60,19 @@ class Receptor(db.Document):
                 "Longitud": self.Longitud,
                 "proyecto": self.proyecto.to_json()}
 
+class Medicion(db.Document):
+    VelViento = db.IntField(required=True)
+    AnguloViento = db.IntField(required=True)
+    AG = db.ReferenceField(AeroGenerador, required=True, reverse_delete_rule=db.CASCADE)
+    R = db.ReferenceField(Receptor, required=True, reverse_delete_rule=db.CASCADE)
+    NPS = db.FloatField(required=False)
 
-
+    def to_json(self):
+        return {"VelViento": self.VelViento,
+                "AnguloViento": self.AnguloViento,
+                "AG": self.AG.to_json(),
+                "R": self.R.to_json(),
+                "valor": self.valor}
 
 
 #Modelos de Usuario
@@ -74,7 +85,6 @@ class User(db.Document):
 
     def to_json(self):
         return {"username": self.username,
-                "password": self.password,
                 "email": self.email,
                 "rol": self.rol}
 
