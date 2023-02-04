@@ -23,10 +23,10 @@ class AeroGenerador(db.Document):
     estado = db.BooleanField(required=True, default=True)
     UtmEste = db.FloatField(required=True)
     UtmNorte = db.FloatField(required=True)
-    LWS6 = db.FloatField(required=True)
-    LWS8 = db.FloatField(required=True)
-    LWS10 = db.FloatField(required=True)
-    Hb = db.FloatField(required=True)
+    LWS1 = db.FloatField(required=True) #LWS = Nivel de Potencia Sonora segun modo de operacion
+    LWS2 = db.FloatField(required=True)
+    LWS3 = db.FloatField(required=True)
+    Hb = db.FloatField(required=True) #Altura de Buje
     ModoOperacion = db.StringField(required=True, max_length=200)
     Marca = db.StringField(required=True, max_length=200)
     Modelo = db.StringField(required=True, max_length=200)
@@ -61,17 +61,17 @@ class Receptor(db.Document):
                 "proyecto": self.proyecto.to_json()}
 
 class Medicion(db.Document):
-    VelViento = db.IntField(required=True)
-    AnguloViento = db.IntField(required=True)
+    velViento = db.IntField(required=True)
+    anguloViento = db.IntField(required=True)
     AG = db.ReferenceField(AeroGenerador, required=True, reverse_delete_rule=db.CASCADE)
     R = db.ReferenceField(Receptor, required=True, reverse_delete_rule=db.CASCADE)
-    NPS = db.FloatField(required=False)
+    NPS = db.FloatField(required=False) #Nivel de Potencia Sonora
 
     def to_json(self):
         return {"VelViento": self.VelViento,
                 "AnguloViento": self.AnguloViento,
-                "AG": self.AG.to_json(),
-                "R": self.R.to_json(),
+                "AG": self.AG.to_json(), #AeroGenerador
+                "R": self.R.to_json(), #Receptor
                 "valor": self.valor}
 
 
