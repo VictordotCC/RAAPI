@@ -2,7 +2,6 @@
 import config
 import requests
 import datetime
-import json
 
 def getWeatherInfo(fecha, proyecto):
     #get wind speed and direction from openweather api
