@@ -1,9 +1,12 @@
+"""Flask App for the API"""
+# pylint: disable=no-member
+import math
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
-from flask_migrate import Migrate
 from models import db, Proyecto, AeroGenerador, Receptor, Medicion
-from helpers import getWeatherInfo
-import math
+
+from helpers import get_weather_info
 import config
 
 app = Flask(__name__)
@@ -19,31 +22,27 @@ db.init_app(app)
 
 #Database Methods
 
-#get schema from mongo
-@cross_origin()
-@app.route('/schema', methods=['GET'])
-def get_schema():
-    schema = db.get_db().list_collection_names()
-    return jsonify(schema), 200
-
 @cross_origin()
 @app.route('/proyectos', methods=['GET'])
 def get_proyectos():
+    """Get all projects"""
     proyectos = Proyecto.objects().to_json()
     return jsonify(proyectos), 200
 
 @cross_origin()
 @app.route('/proyectos', methods=['POST'])
 def add_proyecto():
+    """Add a project"""
     body = request.get_json()
     proyecto = Proyecto(**body).save()
-    id = proyecto.id
-    return {'id': str(id)}, 200
+    id_proyecto = proyecto.id
+    return {'id': str(id_proyecto)}, 200
 
 @cross_origin()
-@app.route('/proyectos/<id>', methods=['GET'])
-def get_proyecto(id):
-    proyecto = Proyecto.objects.get(id=id).to_json()
+@app.route('/proyectos/<id_proyecto>', methods=['GET'])
+def get_proyecto(id_proyecto):
+    """Get a project"""
+    proyecto = Proyecto.objects.get(id=id_proyecto).to_json()
     return jsonify(proyecto), 200
 
 
@@ -52,43 +51,49 @@ def get_proyecto(id):
 @cross_origin()
 @app.route('/info', methods=['POST'])
 def get_info():
+    """Get the info of the project, returning each point value"""
     body = request.get_json()
     #Obtener la fecha y el id del proyecto e info del clima
-    fechaReq = body['fecha']
+    #fecha_req = body['fecha']
     proyecto = Proyecto.objects.get(id=body['id_proyecto'])
-    info = getWeatherInfo(fechaReq, proyecto) #Dict fecha["wind_speed", "wind_direction"]
+    info = get_weather_info(proyecto) #Dict fecha["wind_speed", "wind_direction"]
 
-    #Obtener los aeroGeneradores y sus caracteristicas
-    aeroGeneradores = AeroGenerador.objects(proyecto=proyecto)
+    #Obtener los aero_generadores y sus caracteristicas
+    aero_generadores = AeroGenerador.objects(proyecto=proyecto)
     #Obtener los receptores y sus caracteristicas
     receptores = Receptor.objects(proyecto=proyecto)
 
     #Obtener las mediciones de los receptores
     respuesta = {}
-    valoresViento = []
-    for fecha in info:
-        velViento = info[fecha]["wind_speed"]
-        angViento = info[fecha]["wind_direction"]
-        respuesta.update({fecha: {"velocidad": velViento, "angulo": angViento, "receptores": []}})
-        if [velViento, angViento] not in valoresViento:
-            valoresViento.append([velViento, angViento])
+    valores_viento = []
+    for date, valor in info.items():
+        fecha = date
+        vel_viento = valor["wind_speed"]
+        ang_viento = valor["wind_direction"]
+        respuesta.update({fecha: {"velocidad": vel_viento, "angulo": ang_viento, "receptores": []}})
+        if [vel_viento, ang_viento] not in valores_viento:
+            valores_viento.append([vel_viento, ang_viento])
 
     mediciones = {}
     for receptor in receptores:
-        sumaMedicion = 0
-        for aeroGenerador in aeroGeneradores:
-            for velViento, angViento in valoresViento:
-                medicion = Medicion(velViento=velViento, angViento=angViento, AG=aeroGenerador, R=receptor)
+        suma_medicion = 0
+        for aerogenerador in aero_generadores:
+            for vel_viento, ang_viento in valores_viento:
+                medicion = Medicion(vel_viento=vel_viento,
+                                    ang_viento=ang_viento,
+                                    AG=aerogenerador,
+                                    R=receptor)
                 opmedicion = 10**(medicion.NPS/10)
-                sumaMedicion += opmedicion
-        totalMedicion = 10*math.log10(sumaMedicion)
-        mediciones.update({receptor.id: totalMedicion})
+                suma_medicion += opmedicion
+        total_medicion = 10*math.log10(suma_medicion)
+        mediciones.update({receptor.id: total_medicion})
 
-    for fecha in respuesta:
+    for fecha, valor in respuesta.items():
         for receptor in receptores:
-            respuesta[fecha]["receptores"].append({"id_receptor": receptor.id, "totalNPS": mediciones[receptor.id]})
+            valor["receptores"].append(
+                {"id_receptor": receptor.id,
+                  "totalNPS": mediciones[receptor.id]})
     return jsonify(respuesta), 200
-    
 
 if __name__ == '__main__':
     app.run(debug=True)
