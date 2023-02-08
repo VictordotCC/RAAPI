@@ -4,12 +4,13 @@ from flask_migrate import Migrate
 from models import db, Proyecto, AeroGenerador, Receptor, Medicion
 from helpers import getWeatherInfo
 import math
+import config
 
 app = Flask(__name__)
 cors = CORS(app)
 #app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['MONGODB_SETTINGS'] = {
-    'host': 'mongodb://ruidoambiental:4lMwLKY7nh9zn1aLlwL9dXvfKq0UIYC1ddZ4nPhEzctOflkkRf13bvMSNxtRsxX9V4QLp7dvgMGWACDbuXKO8g==@ruidoambiental.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@ruidoambiental@',
+    'host': config.DBURL,
     'alias': 'default'
 }
 
