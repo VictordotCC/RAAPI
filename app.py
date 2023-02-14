@@ -5,6 +5,7 @@ import math
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 from models import db, Proyecto, AeroGenerador, Receptor, Medicion
+from fastkml import kml
 
 from helpers import get_weather_info
 import config
@@ -47,6 +48,30 @@ def get_proyecto(id_proyecto):
 
 
 #Info Methods
+
+@cross_origin()
+@app.route('/leer_kml', methods=['POST']) #Cambiar a POST
+def leer_kml():
+    print("reading kml")
+    """Read a kml file and return the coordinates"""
+    body = request.get_json()
+    kml_file = body['kml_file']
+    
+    with open(kml_file, 'r') as f:
+        doc = f.read()
+        k = kml.KML()
+        k.from_string(doc)
+        k.from_string(doc)
+   
+        features = list(k.features())
+        puntos = []
+        for feature in features:
+            for group in feature.features():
+                for placemark in group.features():
+                    print(placemark.geometry.x, placemark.geometry.y)
+                    puntos.append([placemark.geometry.x, placemark.geometry.y])
+    
+    return jsonify(puntos), 200
 
 @cross_origin()
 @app.route('/info', methods=['POST'])
