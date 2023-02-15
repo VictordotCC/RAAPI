@@ -7,8 +7,8 @@ db = MongoEngine()
 
 class Proyecto(db.Document):
     """Proyecto model"""
-    nombre = db.StringField(required=True, max_length=200)
-    descripcion = db.StringField(required=False, max_length=200)
+    nombreProyecto = db.StringField(required=True, max_length=200)
+    descripcionProyecto = db.StringField(required=False, max_length=200)
     fechaCreacion = db.StringField(required=True, max_length=200, default=date.today().strftime("%d/%m/%Y"))
     estado = db.BooleanField(required=True, default=True)
     Latitud = db.FloatField(required=False)

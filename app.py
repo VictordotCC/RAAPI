@@ -2,6 +2,7 @@
 # pylint: disable=no-member
 import math
 import os
+import json
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
@@ -33,11 +34,11 @@ def get_proyectos():
 @app.route('/proyectos', methods=['POST'])
 def add_proyecto():
     """Add a project"""
-    body = request.values.to_dict()
+    body = request.values
 
     files = request.files.to_dict()
 
-    proyecto = Proyecto()
+    proyecto = Proyecto(**body)
     #proyecto.nombre = body['nombreProyecto']
     #proyecto.descripcion = body['descripcionProyecto']
     
