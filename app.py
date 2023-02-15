@@ -1,18 +1,17 @@
 """Flask App for the API"""
 # pylint: disable=no-member
 import math
+import os
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 from models import db, Proyecto, AeroGenerador, Receptor, Medicion
-from fastkml import kml
 
-from helpers import get_weather_info
+from helpers import get_weather_info, leer_kml
 import config
 
 app = Flask(__name__)
 cors = CORS(app)
-#app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['MONGODB_SETTINGS'] = {
     'host': config.DBURL,
     'alias': 'default'
@@ -34,10 +33,40 @@ def get_proyectos():
 @app.route('/proyectos', methods=['POST'])
 def add_proyecto():
     """Add a project"""
-    body = request.get_json()
-    proyecto = Proyecto(**body).save()
-    id_proyecto = proyecto.id
-    return {'id': str(id_proyecto)}, 200
+    body = request.values.to_dict()
+
+    files = request.files.to_dict()
+
+    #proyecto = Proyecto()
+    #proyecto.nombre = body['nombreProyecto']
+    #proyecto.descripcion = body['descripcionProyecto']
+    
+    #proyecto.save()
+
+    if len(files) == 0:
+        return jsonify({'id': str('proyecto.id'), 'AGlist': [], 'RXlist': []}), 200
+    
+    AGfile = files['AGkml']
+    AGfile.save('temps/' + AGfile.filename)
+    RXfile = files['RXkml']
+    RXfile.save('temps/' + RXfile.filename)
+
+    AGlist = leer_kml('temps/' + AGfile.filename)
+    RXlist = leer_kml('temps/' + RXfile.filename)
+
+    #remove files
+
+    os.remove('temps/' + AGfile.filename)
+    os.remove('temps/' + RXfile.filename)
+
+    return jsonify({'id': str('proyecto.id'), 'AGlist': AGlist, 'RXlist': RXlist}), 200
+
+@cross_origin()
+@app.route('/proyectos/<id_proyecto>', methods=['GET']) #Cambiar a PUT
+def delete_proyecto(id_proyecto):
+    """Delete a project by object id"""
+    proyecto = Proyecto.objects.get(id=id_proyecto).delete()
+    return '', 200
 
 @cross_origin()
 @app.route('/proyectos/<id_proyecto>', methods=['GET'])
@@ -48,30 +77,6 @@ def get_proyecto(id_proyecto):
 
 
 #Info Methods
-
-@cross_origin()
-@app.route('/leer_kml', methods=['POST']) #Cambiar a POST
-def leer_kml():
-    print("reading kml")
-    """Read a kml file and return the coordinates"""
-    body = request.get_json()
-    kml_file = body['kml_file']
-    
-    with open(kml_file, 'r') as f:
-        doc = f.read()
-        k = kml.KML()
-        k.from_string(doc)
-        k.from_string(doc)
-   
-        features = list(k.features())
-        puntos = []
-        for feature in features:
-            for group in feature.features():
-                for placemark in group.features():
-                    print(placemark.geometry.x, placemark.geometry.y)
-                    puntos.append([placemark.geometry.x, placemark.geometry.y])
-    
-    return jsonify(puntos), 200
 
 @cross_origin()
 @app.route('/info', methods=['POST'])

@@ -1,6 +1,7 @@
 """Models and database functions for Project."""
 # pylint: disable=no-member
 from flask_mongoengine import MongoEngine
+from datetime import date
 
 db = MongoEngine()
 
@@ -8,8 +9,8 @@ class Proyecto(db.Document):
     """Proyecto model"""
     nombre = db.StringField(required=True, max_length=200)
     descripcion = db.StringField(required=False, max_length=200)
-    fechaCreacion = db.StringField(required=True, max_length=200)
-    estado = db.BooleanField(required=True)
+    fechaCreacion = db.StringField(required=True, max_length=200, default=date.today().strftime("%d/%m/%Y"))
+    estado = db.BooleanField(required=True, default=True)
     Latitud = db.FloatField(required=False)
     Longitud = db.FloatField(required=False)
 
