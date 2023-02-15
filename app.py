@@ -37,14 +37,14 @@ def add_proyecto():
 
     files = request.files.to_dict()
 
-    #proyecto = Proyecto()
+    proyecto = Proyecto()
     #proyecto.nombre = body['nombreProyecto']
     #proyecto.descripcion = body['descripcionProyecto']
     
     #proyecto.save()
 
     if len(files) == 0:
-        return jsonify({'id': str('proyecto.id'), 'AGlist': [], 'RXlist': []}), 200
+        return jsonify({'proyecto': proyecto.to_json() , 'AGlist': [], 'RXlist': []}), 200
     
     AGfile = files['AGkml']
     AGfile.save('temps/' + AGfile.filename)
@@ -59,7 +59,7 @@ def add_proyecto():
     os.remove('temps/' + AGfile.filename)
     os.remove('temps/' + RXfile.filename)
 
-    return jsonify({'id': str('proyecto.id'), 'AGlist': AGlist, 'RXlist': RXlist}), 200
+    return jsonify({'proyecto': proyecto.to_json(), 'AGlist': AGlist, 'RXlist': RXlist}), 200
 
 @cross_origin()
 @app.route('/proyectos/<id_proyecto>', methods=['GET']) #Cambiar a PUT

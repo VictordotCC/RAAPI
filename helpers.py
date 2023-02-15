@@ -44,7 +44,6 @@ def leer_kml(kml_file):
         for feature in features:
             for group in feature.features():
                 for placemark in group.features():
-                    print(placemark.geometry.x, placemark.geometry.y)
                     puntos.append([placemark.geometry.x, placemark.geometry.y])
     
     return puntos
