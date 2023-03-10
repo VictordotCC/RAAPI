@@ -24,7 +24,6 @@ def get_weather_info(proyecto):
     return result
 
 def leer_kml(kml_file):
-    print("reading kml")
     """Read a kml file and return the coordinates"""
 
     #check if kml_file is a file or a string

@@ -45,7 +45,7 @@ def add_proyecto():
     #proyecto.save()
 
     if len(files) == 0:
-        return jsonify({'proyecto': proyecto.to_json() , 'AGlist': [], 'RXlist': []}), 200
+        return jsonify({'proyecto': proyecto , 'AGlist': [], 'RXlist': []}), 200
     
     AGfile = files['AGkml']
     AGfile.save('temps/' + AGfile.filename)
@@ -60,7 +60,7 @@ def add_proyecto():
     os.remove('temps/' + AGfile.filename)
     os.remove('temps/' + RXfile.filename)
 
-    return jsonify({'proyecto': proyecto.to_json(), 'AGlist': AGlist, 'RXlist': RXlist}), 200
+    return jsonify({'proyecto': proyecto, 'AGlist': AGlist, 'RXlist': RXlist}), 200
 
 @cross_origin()
 @app.route('/proyectos/<id_proyecto>', methods=['GET']) #Cambiar a PUT
@@ -75,6 +75,13 @@ def get_proyecto(id_proyecto):
     """Get a project"""
     proyecto = Proyecto.objects.get(id=id_proyecto).to_json()
     return jsonify(proyecto), 200
+
+@cross_origin()
+@app.route('/ag', methods=['POST'])
+def add_ag():
+    """Add an aero generator"""
+    body = request.values
+    return '', 200
 
 
 #Info Methods
