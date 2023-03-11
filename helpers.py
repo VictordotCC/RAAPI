@@ -1,9 +1,10 @@
 """Helpers Methods"""
 import datetime
 import requests
-import config
 
 from fastkml import kml
+
+import config
 
 
 def get_weather_info(proyecto):

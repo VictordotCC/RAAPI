@@ -2,7 +2,7 @@
 # pylint: disable=no-member
 import math
 import os
-import json
+import utm
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
@@ -67,7 +67,7 @@ def add_proyecto():
 def delete_proyecto(id_proyecto):
     """Delete a project by object id"""
     proyecto = Proyecto.objects.get(id=id_proyecto).delete()
-    return '', 200
+    return proyecto, 200
 
 @cross_origin()
 @app.route('/proyectos/<id_proyecto>', methods=['GET'])
@@ -81,7 +81,11 @@ def get_proyecto(id_proyecto):
 def add_ag():
     """Add an aero generator"""
     body = request.values
-    return '', 200
+    print(body['nombreProyecto'], body['latitud'], body['longitud'])
+    utm_coord = utm.from_latlon(float(body['latitud']), float(body['longitud']))
+    print(utm_coord)
+    input()
+    return jsonify(''), 200
 
 
 #Info Methods
