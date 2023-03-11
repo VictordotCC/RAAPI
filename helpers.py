@@ -48,6 +48,10 @@ def leer_kml(kml_file):
     
     return puntos
 
+def get_time():
+    """Get the current time"""
+    return datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+
 
 #x = {"Latitud": -33.4569, "Longitud": -70.6483}
 #r = get_weather_info(x)

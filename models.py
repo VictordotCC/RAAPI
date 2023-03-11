@@ -21,6 +21,8 @@ class AeroGenerador(db.Document):
     estado = db.BooleanField(required=True, default=True)
     UtmEste = db.FloatField(required=True)
     UtmNorte = db.FloatField(required=True)
+    UtmZone = db.IntField(required=True)
+    UtmZoneLetter = db.StringField(required=True, max_length=1)
     LWS1 = db.FloatField(required=False) #LWS = Nivel de Potencia Sonora segun modo de operacion
     LWS2 = db.FloatField(required=False)
     LWS3 = db.FloatField(required=False)

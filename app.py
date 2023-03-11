@@ -8,7 +8,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 from models import db, Proyecto, AeroGenerador, Receptor, Medicion
 
-from helpers import get_weather_info, leer_kml
+from helpers import get_weather_info, leer_kml, get_time
 import config
 
 app = Flask(__name__)
@@ -81,10 +81,17 @@ def get_proyecto(id_proyecto):
 def add_ag():
     """Add an aero generator"""
     body = request.values
-    print(body['nombreProyecto'], body['latitud'], body['longitud'])
-    utm_coord = utm.from_latlon(float(body['latitud']), float(body['longitud']))
-    print(utm_coord)
-    input()
+    print(body)
+    utm_coord = utm.from_latlon(float(body['latitud']), float(body['longitud'])) #(easting, northing, zone_number, zone_letter)
+    aero_gen = AeroGenerador(nombre=body['nombreAG'], fechaCreacion=get_time(),
+                                estado=True,
+                                UtmEste=utm_coord[0],
+                                UtmNorte=utm_coord[1],
+                                UtmZone=utm_coord[2],
+                                UtmZoneLetter=utm_coord[3]
+                                ) #Falta ID del proyecto
+    print(aero_gen)
+       
     return jsonify(''), 200
 
 
