@@ -81,7 +81,6 @@ def get_proyecto(id_proyecto):
 def add_ag():
     """Add an aero generator"""
     body = request.values
-    print(body)
     utm_coord = utm.from_latlon(float(body['latitud']), float(body['longitud'])) #(easting, northing, zone_number, zone_letter)
     aero_gen = AeroGenerador(nombre=body['nombreAG'], fechaCreacion=get_time(),
                                 estado=True,
@@ -90,8 +89,26 @@ def add_ag():
                                 UtmZone=utm_coord[2],
                                 UtmZoneLetter=utm_coord[3]
                                 ) #Falta ID del proyecto
-    print(aero_gen)
+    #aero_gen.save()
+
        
+    return jsonify(''), 200
+
+@cross_origin()
+@app.route('/rx', methods=['POST'])
+def add_rx():
+    """Add a receptor"""
+    body = request.values
+    utm_coord = utm.from_latlon(float(body['latitud']), float(body['longitud']))
+    receptor = Receptor(nombre=body['nombreRX'], fechaCreacion=get_time(),
+                                estado=True,
+                                UtmEste=utm_coord[0],
+                                UtmNorte=utm_coord[1],
+                                UtmZone=utm_coord[2],
+                                UtmZoneLetter=utm_coord[3]
+                                ) #Falta ID del proyecto
+    #receptor.save()
+
     return jsonify(''), 200
 
 

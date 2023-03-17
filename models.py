@@ -39,6 +39,8 @@ class Receptor(db.Document):
     estado = db.BooleanField(required=True, default=True)
     UtmEste = db.FloatField(required=True)
     UtmNorte = db.FloatField(required=True)
+    UtmZone = db.IntField(required=True)
+    UtmZoneLetter = db.StringField(required=True, max_length=1)
     Descripcion = db.StringField(required=False, max_length=200)
     Tipo = db.StringField(required=False, max_length=200)
     proyecto = db.ReferenceField(Proyecto, required=True, reverse_delete_rule=db.CASCADE)
