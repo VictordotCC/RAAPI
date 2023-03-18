@@ -1,7 +1,8 @@
 """Models and database functions for Project."""
 # pylint: disable=no-member
-from flask_mongoengine import MongoEngine
 from datetime import date
+from flask_mongoengine import MongoEngine
+
 
 db = MongoEngine()
 

@@ -40,9 +40,8 @@ def add_proyecto():
 
     proyecto = Proyecto(**body)
     #proyecto.nombre = body['nombreProyecto']
-    #proyecto.descripcion = body['descripcionProyecto']
-    
-    #proyecto.save()
+    #proyecto.descripcion = body['descripcionProyecto'] 
+    proyecto.save()
 
     if len(files) == 0:
         return jsonify({'proyecto': proyecto , 'AGlist': [], 'RXlist': []}), 200
@@ -67,7 +66,7 @@ def add_proyecto():
 def delete_proyecto(id_proyecto):
     """Delete a project by object id"""
     proyecto = Proyecto.objects.get(id=id_proyecto).delete()
-    return proyecto, 200
+    return 'deleted', 200
 
 @cross_origin()
 @app.route('/proyectos/<id_proyecto>', methods=['GET'])
@@ -87,9 +86,10 @@ def add_ag():
                                 UtmEste=utm_coord[0],
                                 UtmNorte=utm_coord[1],
                                 UtmZone=utm_coord[2],
-                                UtmZoneLetter=utm_coord[3]
-                                ) #Falta ID del proyecto
-    #aero_gen.save()
+                                UtmZoneLetter=utm_coord[3],
+                                proyecto=body['oidProyecto']
+                                )
+    aero_gen.save()
 
        
     return jsonify(''), 200
@@ -105,9 +105,10 @@ def add_rx():
                                 UtmEste=utm_coord[0],
                                 UtmNorte=utm_coord[1],
                                 UtmZone=utm_coord[2],
-                                UtmZoneLetter=utm_coord[3]
-                                ) #Falta ID del proyecto
-    #receptor.save()
+                                UtmZoneLetter=utm_coord[3],
+                                proyecto=body['oidProyecto']
+                                )
+    receptor.save()
 
     return jsonify(''), 200
 
