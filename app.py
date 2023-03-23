@@ -62,7 +62,7 @@ def add_proyecto():
     return jsonify({'proyecto': proyecto, 'AGlist': AGlist, 'RXlist': RXlist}), 200
 
 @cross_origin()
-@app.route('/proyectos/<id_proyecto>', methods=['GET']) #Cambiar a PUT
+@app.route('/proyectos/<id_proyecto>', methods=['GET']) #TODO: Cambiar a PUT
 def delete_proyecto(id_proyecto):
     """Delete a project by object id"""
     proyecto = Proyecto.objects.get(id=id_proyecto).delete()
@@ -95,6 +95,20 @@ def add_ag():
     return jsonify(''), 200
 
 @cross_origin()
+@app.route('/ag', methods=['GET'])
+def get_ag():
+    """Get all aero generators"""
+    aero_generadores = AeroGenerador.objects().to_json()
+    return jsonify(aero_generadores), 200
+
+@cross_origin()
+@app.route('/ag/<id_proy>', methods=['GET'])
+def get_ag_proy(id_proy):
+    """Get all aero generators of a project"""
+    aero_generadores = AeroGenerador.objects(proyecto=id_proy).to_json()
+    return jsonify(aero_generadores), 200
+
+@cross_origin()
 @app.route('/rx', methods=['POST'])
 def add_rx():
     """Add a receptor"""
@@ -112,8 +126,34 @@ def add_rx():
 
     return jsonify(''), 200
 
+@cross_origin()
+@app.route('/rx', methods=['GET'])
+def get_rx():
+    """Get all receptors"""
+    receptores = Receptor.objects().to_json()
+    return jsonify(receptores), 200
+
+@cross_origin()
+@app.route('/rx/<id_proy>', methods=['GET'])
+def get_rx_proy(id_proy):
+    """Get all receptors of a project"""
+    receptores = Receptor.objects(proyecto=id_proy).to_json()
+    return jsonify(receptores), 200
+
 
 #Info Methods
+
+@cross_origin()
+@app.route('/gm', methods=['POST'])
+def generar_mediciones():
+    """Genera los valores de las mediciones del proyecto para cada valor de angulo y velocidad del viento"""
+    body = request.values
+    print(body['id_proyecto'])
+
+    
+    #TODO: realizar logica de generacion de mediciones
+    return jsonify(''), 200
+
 
 @cross_origin()
 @app.route('/info', methods=['POST'])
