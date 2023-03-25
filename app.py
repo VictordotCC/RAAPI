@@ -17,6 +17,7 @@ app.config['MONGODB_SETTINGS'] = {
     'host': config.DBURL,
     'alias': 'default'
 }
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 db.init_app(app)
 
