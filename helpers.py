@@ -3,6 +3,7 @@ import datetime
 import requests
 
 from fastkml import kml
+import openpyxl as xl
 
 import config
 
@@ -51,6 +52,41 @@ def leer_kml(kml_file):
 def get_time():
     """Get the current time"""
     return datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+
+def search_in_xlsx(id_proyecto, n_ag, n_receptor):
+    """Search in the xlsx file the values of the receptor and aero generator"""
+    file_path = "meds/" + str(id_proyecto) + ".xlsx"
+    wb = xl.load_workbook(file_path)
+    par_mediciones = []
+    for sheet in wb.worksheets:
+        #indexing receptores
+        for cell in sheet.iter_cols(min_row=1, max_row=1):
+            if cell[0].value == n_receptor:
+                receptor_col = cell[0].column
+                break
+            else:
+                receptor_col = None
+        if receptor_col is None:
+            break
+        #search the n_ag in the sheet
+        for row in sheet.iter_rows():
+            for cell in row:
+                if cell.value == n_ag:
+                    row_num = cell.row
+                    par_mediciones.append({"vel_viento": sheet.title[0],
+                                            "angulo": sheet.cell(row=row_num, column=1).value,
+                                            "valor": (str(sheet.cell(row=row_num, column=receptor_col).value)).replace(",", ".")})
+                    break
+    if len(par_mediciones) == 0:
+        return None
+    #print(par_mediciones)
+    return par_mediciones
+            
+
+
+search_in_xlsx("641fa500b31c7b29c0e9d2dc", "AG1", "R1")
+    
+
 
 
 #x = {"Latitud": -33.4569, "Longitud": -70.6483}

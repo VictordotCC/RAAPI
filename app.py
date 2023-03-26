@@ -8,7 +8,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 from models import db, Proyecto, AeroGenerador, Receptor, Medicion
 
-from helpers import get_weather_info, leer_kml, get_time
+from helpers import get_weather_info, leer_kml, get_time, search_in_xlsx
 import config
 
 app = Flask(__name__)
@@ -17,7 +17,6 @@ app.config['MONGODB_SETTINGS'] = {
     'host': config.DBURL,
     'alias': 'default'
 }
-app.config['CORS_HEADERS'] = 'Content-Type'
 
 db.init_app(app)
 
@@ -149,11 +148,23 @@ def get_rx_proy(id_proy):
 def generar_mediciones():
     """Genera los valores de las mediciones del proyecto para cada valor de angulo y velocidad del viento"""
     body = request.values
-    print(body['id_proyecto'])
+    #Obtener los aero generadores y sus caracteristicas
+    aero_generadores = AeroGenerador.objects(proyecto=body['id_proyecto'])
+    #Obtener los receptores y sus caracteristicas
+    receptores = Receptor.objects(proyecto=body['id_proyecto'])
 
-    
-    #TODO: realizar logica de generacion de mediciones
-    return jsonify(''), 200
+    for ag in aero_generadores:
+        for rx in receptores:
+            par_mediciones = search_in_xlsx(body['id_proyecto'], ag.nombre, rx.nombre)
+            if par_mediciones is not None:
+                for par in par_mediciones:
+                    medicion = Medicion(velViento = par['vel_viento'],
+                                        anguloViento = par['angulo'],
+                                        AG = ag.id,
+                                        R = rx.id,
+                                        NPS = par['valor'])
+                    medicion.save()
+    return jsonify('finalizado'), 200
 
 
 @cross_origin()
