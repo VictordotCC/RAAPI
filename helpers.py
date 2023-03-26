@@ -59,6 +59,8 @@ def search_in_xlsx(id_proyecto, n_ag, n_receptor):
     wb = xl.load_workbook(file_path)
     par_mediciones = []
     for sheet in wb.worksheets:
+        title = sheet.title.split("-")
+        vel_viento = title[0]
         #indexing receptores
         for cell in sheet.iter_cols(min_row=1, max_row=1):
             if cell[0].value == n_receptor:
@@ -73,7 +75,7 @@ def search_in_xlsx(id_proyecto, n_ag, n_receptor):
             for cell in row:
                 if cell.value == n_ag:
                     row_num = cell.row
-                    par_mediciones.append({"vel_viento": sheet.title[0],
+                    par_mediciones.append({"vel_viento": title[0],
                                             "angulo": sheet.cell(row=row_num, column=1).value,
                                             "valor": (str(sheet.cell(row=row_num, column=receptor_col).value)).replace(",", ".")})
                     break
