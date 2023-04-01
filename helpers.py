@@ -45,8 +45,9 @@ def leer_kml(kml_file):
         for feature in features:
             for group in feature.features():
                 for placemark in group.features():
-                    puntos.append([placemark.geometry.x, placemark.geometry.y])
-    
+                    coordenadas = [placemark.geometry.x, placemark.geometry.y]
+                    if coordenadas not in puntos:
+                        puntos.append(coordenadas)
     return puntos
 
 def get_time():
@@ -86,7 +87,8 @@ def search_in_xlsx(id_proyecto, n_ag, n_receptor):
             
 
 
-search_in_xlsx("641fa500b31c7b29c0e9d2dc", "AG1", "R1")
+#search_in_xlsx("642851f426b13c3e932632f9", "AG1", "R1")
+
     
 
 
