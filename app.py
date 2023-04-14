@@ -6,6 +6,7 @@ import utm
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
+import numpy as np
 from models import db, Proyecto, AeroGenerador, Receptor, Medicion
 
 from helpers import get_weather_info, leer_kml, get_time, search_in_xlsx
@@ -165,6 +166,36 @@ def generar_mediciones():
                                         NPS = par['valor'])
                     medicion.save()
     return jsonify('finalizado'), 200
+
+@cross_origin()
+@app.route('/gjson', methods=['POST'])
+def crear_geojson():
+    """Crea un archivo geojson con los puntos de aero generadores y receptores incluyendo sus mediciones"""
+    body = request.values
+    receptores = body['receptores']
+    #obtener 1 receptor
+    r = Receptor.objects.get(id=receptores[0])
+    mediciones = Medicion.objects(R=r.id)
+    #FIXME: REPENSAR ESTO
+    pares_vel_ang = []
+    for medicion in mediciones:
+        pares_vel_ang.append({'vel_viento': medicion.velViento, 'angulo': medicion.anguloViento})
+    for par in pares_vel_ang:
+        latitudes = []
+        longitudes = []
+        for receptor in receptores:
+            lat, lon = utm.to_latlon(receptor.UtmEste, receptor.UtmNorte, receptor.UtmZone, receptor.UtmZoneLetter)
+            longitudes.append(lon)
+            latitudes.append(lat)
+            #Obtener el valor de la medicion
+            medicion = Medicion.objects.get(R=receptor.id, velViento=par['vel_viento'], anguloViento=par['angulo'])
+            
+            
+            
+
+
+        
+
 
 
 @cross_origin()

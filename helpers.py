@@ -84,7 +84,12 @@ def search_in_xlsx(id_proyecto, n_ag, n_receptor):
         return None
     #print(par_mediciones)
     return par_mediciones
-            
+
+
+
+        
+
+
 
 
 #search_in_xlsx("642851f426b13c3e932632f9", "AG1", "R1")
