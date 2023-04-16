@@ -1,13 +1,17 @@
 """Flask App for the API"""
 # pylint: disable=no-member
-import math
 import os
 import utm
 
+import numpy as np
+import pandas as pd
+import geopandas as gpd
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
-import numpy as np
+from scipy.interpolate import griddata
+import matplotlib.colors as clrs
 from models import db, Proyecto, AeroGenerador, Receptor, Medicion
+
 
 from helpers import get_weather_info, leer_kml, get_time, search_in_xlsx
 import config
@@ -173,77 +177,56 @@ def crear_geojson():
     """Crea un archivo geojson con los puntos de aero generadores y receptores incluyendo sus mediciones"""
     body = request.values
     receptores = body['receptores']
+    aerogeneradores = body['aerogeneradores']
     #obtener 1 receptor
     r = Receptor.objects.get(id=receptores[0])
     mediciones = Medicion.objects(R=r.id)
-    #FIXME: REPENSAR ESTO
     pares_vel_ang = []
     for medicion in mediciones:
-        pares_vel_ang.append({'vel_viento': medicion.velViento, 'angulo': medicion.anguloViento})
+        if {'vel_viento': medicion.velViento, 'angulo': medicion.anguloViento} not in pares_vel_ang:
+            pares_vel_ang.append({'vel_viento': medicion.velViento, 'angulo': medicion.anguloViento})
     for par in pares_vel_ang:
         latitudes = []
         longitudes = []
+        mediciones = []
         for receptor in receptores:
+            suma_medicion = 0
+            for aerogenerador in aerogeneradores:
+                medicion = Medicion.objects.get(R=receptor, AG=aerogenerador, velViento=par['vel_viento'], anguloViento=par['angulo'])
+                opmedicion = 10**(medicion.NPS/10)
+                suma_medicion += opmedicion
+            total_medicion = 10*np.log10(suma_medicion)
+            mediciones.append(total_medicion)
             lat, lon = utm.to_latlon(receptor.UtmEste, receptor.UtmNorte, receptor.UtmZone, receptor.UtmZoneLetter)
             longitudes.append(lon)
             latitudes.append(lat)
-            #Obtener el valor de la medicion
-            medicion = Medicion.objects.get(R=receptor.id, velViento=par['vel_viento'], anguloViento=par['angulo'])
-            
-            
-            
+        #Crear el geojson
+        xlist = np.linspace(np.min(longitudes), np.max(longitudes), 100)
+        ylist = np.linspace(np.min(latitudes), np.max(latitudes), 100)
+        x, y = np.meshgrid(xlist, ylist)
+        z = griddata((longitudes, latitudes), mediciones, (x, y), method='linear')
 
+        colors = ['#B0E57C', '#F4D06F', '#F7A83E', '#E7604A', '#9F1C20']
+        vmin = 0
+        vmax = 140
+        levels = len(colors) - 1
+        step = (vmax - vmin) / levels
 
-        
+        cmap = clrs.ListedColormap(colors)
+        norm = clrs.BoundaryNorm(np.arange(vmin, vmax + step, step), cmap.N)
 
+        hexcolors = [cmap(norm(v)) for v in mediciones]
+        hexcolors = [colors.to_hex(color) for color in hexcolors]
 
+        pointsdf = pd.DataFrame({'Longitud': longitudes, 'Latitud': latitudes, 'marker-color': hexcolors, 'NPS': mediciones})
 
-@cross_origin()
-@app.route('/info', methods=['POST'])
-def get_info():
-    """Get the info of the project, returning each point value"""
-    body = request.get_json()
-    #Obtener la fecha y el id del proyecto e info del clima
-    #fecha_req = body['fecha']
-    proyecto = Proyecto.objects.get(id=body['id_proyecto'])
-    info = get_weather_info(proyecto) #Dict fecha["wind_speed", "wind_direction"]
+        geo_df = gpd.GeoDataFrame(pointsdf, geometry = gpd.points_from_xy(pointsdf.Longitud, pointsdf.Latitud))
 
-    #Obtener los aero_generadores y sus caracteristicas
-    aero_generadores = AeroGenerador.objects(proyecto=proyecto)
-    #Obtener los receptores y sus caracteristicas
-    receptores = Receptor.objects(proyecto=proyecto)
+        filename = 'geojsons/' + body['id_proyecto'] + '_' + str(par['vel_viento']) + '_' + str(par['angulo']) + '.geojson'
+        geo_df.to_file(filename, driver='GeoJSON')
 
-    #Obtener las mediciones de los receptores
-    respuesta = {}
-    valores_viento = []
-    for date, valor in info.items():
-        fecha = date
-        vel_viento = valor["wind_speed"]
-        ang_viento = valor["wind_direction"]
-        respuesta.update({fecha: {"velocidad": vel_viento, "angulo": ang_viento, "receptores": []}})
-        if [vel_viento, ang_viento] not in valores_viento:
-            valores_viento.append([vel_viento, ang_viento])
+    return jsonify('GeoJSON creados'), 200
 
-    mediciones = {}
-    for receptor in receptores:
-        suma_medicion = 0
-        for aerogenerador in aero_generadores:
-            for vel_viento, ang_viento in valores_viento:
-                medicion = Medicion(vel_viento=vel_viento,
-                                    ang_viento=ang_viento,
-                                    AG=aerogenerador,
-                                    R=receptor)
-                opmedicion = 10**(medicion.NPS/10)
-                suma_medicion += opmedicion
-        total_medicion = 10*math.log10(suma_medicion)
-        mediciones.update({receptor.id: total_medicion})
-
-    for fecha, valor in respuesta.items():
-        for receptor in receptores:
-            valor["receptores"].append(
-                {"id_receptor": receptor.id,
-                  "totalNPS": mediciones[receptor.id]})
-    return jsonify(respuesta), 200
 
 if __name__ == '__main__':
     app.run(debug=True)
